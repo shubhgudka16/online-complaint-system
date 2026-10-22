@@ -23,7 +23,27 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('register.store');
 });
 
+use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DepartmentController;
+
 // Authenticated Routes
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Student Specific Routes
+    Route::middleware('role:student')->group(function () {
+        Route::get('/student/dashboard', [DashboardController::class, 'studentDashboard'])->name('student.dashboard');
+    });
+
+    // Admin Specific Routes
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/admin/dashboard', [DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
+        Route::get('/admin/reports', [DashboardController::class, 'reports'])->name('admin.reports');
+        Route::resource('departments', DepartmentController::class);
+        Route::patch('/complaints/{complaint}/status', [ComplaintController::class, 'updateStatus'])->name('complaints.status');
+    });
+
+    // Shared Complaint Routes (Protected by ComplaintPolicy)
+    Route::resource('complaints', ComplaintController::class);
 });
